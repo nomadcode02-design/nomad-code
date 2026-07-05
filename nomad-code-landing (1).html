@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nomad Code — Bots, webs y automatización a medida</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #17181F;
+    --panel: #1F212B;
+    --panel-2: #262835;
+    --line: #333644;
+    --amber: #E8A33D;
+    --amber-dim: #6B551F;
+    --teal: #4FD1C5;
+    --text: #EDEEF2;
+    --muted: #8B8D99;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.6;
+    overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none;}
+
+  /* subtle background grid */
+  .grid-bg{
+    position:fixed;inset:0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:64px 64px;
+    opacity:0.12;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* NAV */
+  nav{
+    position:sticky;top:0;z-index:50;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:20px 6%;
+    background:rgba(23,24,31,0.85);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .logo{
+    font-family:var(--mono);font-weight:700;font-size:1.1rem;
+    letter-spacing:0.5px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .logo .caret{color:var(--amber);}
+  .nav-links{display:flex;gap:32px;font-size:0.9rem;color:var(--muted);}
+  .nav-links a:hover{color:var(--teal);}
+  .nav-cta{
+    font-family:var(--mono);font-size:0.85rem;
+    border:1px solid var(--amber);color:var(--amber);
+    padding:8px 16px;border-radius:2px;
+    transition:all 0.2s;
+  }
+  .nav-cta:hover{background:var(--amber);color:var(--bg);}
+  @media(max-width:768px){.nav-links{display:none;}}
+
+  /* HERO */
+  .hero{
+    position:relative;z-index:1;
+    min-height:88vh;
+    display:flex;flex-direction:column;justify-content:center;
+    padding:8% 6% 4%;
+    max-width:1200px;margin:0 auto;
+  }
+  .coord-tracker{
+    font-family:var(--mono);font-size:0.75rem;color:var(--muted);
+    display:flex;gap:18px;margin-bottom:32px;letter-spacing:0.5px;
+  }
+  .coord-tracker span{color:var(--teal);}
+  .hero-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:60px;align-items:center;}
+  @media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:40px;}}
+
+  .eyebrow{
+    font-family:var(--mono);font-size:0.8rem;color:var(--amber);
+    letter-spacing:2px;text-transform:uppercase;margin-bottom:18px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow::before{content:'';width:24px;height:1px;background:var(--amber);display:inline-block;}
+  h1{
+    font-family:var(--mono);font-weight:800;
+    font-size:clamp(2.2rem, 5vw, 3.6rem);
+    line-height:1.08;letter-spacing:-1px;
+    margin-bottom:22px;
+  }
+  h1 .accent{color:var(--amber);}
+  .hero p.lead{
+    font-size:1.05rem;color:var(--muted);max-width:480px;margin-bottom:32px;
+  }
+  .hero-ctas{display:flex;gap:16px;flex-wrap:wrap;}
+  .btn-primary{
+    font-family:var(--mono);font-weight:700;font-size:0.9rem;
+    background:var(--amber);color:var(--bg);
+    padding:14px 26px;border-radius:2px;
+    transition:transform 0.15s, box-shadow 0.15s;
+    display:inline-block;
+  }
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(232,163,61,0.25);}
+  .btn-ghost{
+    font-family:var(--mono);font-size:0.9rem;
+    border:1px solid var(--line);color:var(--text);
+    padding:14px 26px;border-radius:2px;
+    transition:border-color 0.2s;
+  }
+  .btn-ghost:hover{border-color:var(--teal);color:var(--teal);}
+
+  /* TERMINAL */
+  .terminal{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+    box-shadow:0 30px 60px rgba(0,0,0,0.4);
+  }
+  .term-bar{
+    background:var(--panel-2);
+    padding:10px 16px;
+    display:flex;align-items:center;gap:8px;
+    border-bottom:1px solid var(--line);
+  }
+  .term-dot{width:10px;height:10px;border-radius:50%;}
+  .term-bar .term-dot:nth-child(1){background:#E8574F;}
+  .term-bar .term-dot:nth-child(2){background:#E8A33D;}
+  .term-bar .term-dot:nth-child(3){background:#4FD1C5;}
+  .term-title{
+    margin-left:auto;font-family:var(--mono);font-size:0.7rem;color:var(--muted);
+  }
+  .term-body{
+    padding:22px 20px;font-family:var(--mono);font-size:0.85rem;
+    min-height:260px;
+  }
+  .term-line{margin-bottom:10px;color:var(--muted);}
+  .term-line .prompt{color:var(--teal);}
+  .term-line .path{color:var(--amber);}
+  .term-out{color:var(--text);margin-bottom:16px;padding-left:2px;}
+  .term-cursor{
+    display:inline-block;width:8px;height:15px;background:var(--amber);
+    animation:blink 1s step-end infinite;vertical-align:middle;
+  }
+  @keyframes blink{50%{opacity:0;}}
+  .typed{white-space:pre-wrap;}
+
+  /* SECTION SHARED */
+  section{position:relative;z-index:1;padding:100px 6%;max-width:1200px;margin:0 auto;}
+  .section-head{margin-bottom:56px;max-width:600px;}
+  .section-head .eyebrow{margin-bottom:14px;}
+  .section-head h2{
+    font-family:var(--mono);font-weight:800;font-size:clamp(1.8rem,3.5vw,2.6rem);
+    letter-spacing:-0.5px;
+  }
+  .section-head p{color:var(--muted);margin-top:14px;font-size:1rem;}
+
+  /* SERVICES */
+  .services-grid{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:2px;
+    background:var(--line);border:1px solid var(--line);
+    border-radius:8px;overflow:hidden;
+  }
+  @media(max-width:768px){.services-grid{grid-template-columns:1fr;}}
+  .service-card{
+    background:var(--panel);padding:36px 32px;
+    transition:background 0.2s;
+  }
+  .service-card:hover{background:var(--panel-2);}
+  .service-cmd{
+    font-family:var(--mono);font-size:0.78rem;color:var(--teal);
+    margin-bottom:14px;letter-spacing:0.3px;
+  }
+  .service-card h3{
+    font-family:var(--mono);font-size:1.15rem;margin-bottom:10px;font-weight:700;
+  }
+  .service-card p{color:var(--muted);font-size:0.92rem;}
+
+  /* PROCESS */
+  .process-list{border-top:1px solid var(--line);}
+  .process-item{
+    display:grid;grid-template-columns:80px 1fr 1fr;gap:24px;
+    padding:26px 0;border-bottom:1px solid var(--line);align-items:baseline;
+  }
+  @media(max-width:768px){.process-item{grid-template-columns:50px 1fr;}.process-item .process-desc{grid-column:2;}}
+  .process-tag{font-family:var(--mono);color:var(--amber);font-size:0.85rem;}
+  .process-item h4{font-family:var(--mono);font-size:1.05rem;}
+  .process-desc{color:var(--muted);font-size:0.92rem;}
+
+  /* CONTACT */
+  .contact-box{
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:56px 6%;text-align:left;
+    display:grid;grid-template-columns:1.2fr 1fr;gap:40px;align-items:center;
+  }
+  @media(max-width:768px){.contact-box{grid-template-columns:1fr;}}
+  .contact-box h2{
+    font-family:var(--mono);font-weight:800;font-size:clamp(1.6rem,3vw,2.2rem);
+    margin-bottom:14px;
+  }
+  .contact-box p{color:var(--muted);margin-bottom:26px;max-width:420px;}
+  .contact-links{display:flex;flex-direction:column;gap:14px;font-family:var(--mono);}
+  .contact-links a{
+    display:flex;align-items:center;gap:12px;padding:14px 18px;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:4px;
+    font-size:0.9rem;transition:border-color 0.2s;
+  }
+  .contact-links a:hover{border-color:var(--amber);}
+  .contact-links .tag{color:var(--muted);font-size:0.75rem;min-width:70px;}
+
+  footer{
+    position:relative;z-index:1;
+    text-align:center;padding:40px 6%;color:var(--muted);
+    font-family:var(--mono);font-size:0.8rem;
+    border-top:1px solid var(--line);
+  }
+  footer .caret{color:var(--amber);}
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<nav>
+  <div class="logo"><span class="caret">&gt;</span> nomad_code_</div>
+  <div class="nav-links">
+    <a href="#servicios">servicios</a>
+    <a href="#proceso">proceso</a>
+    <a href="#contacto">contacto</a>
+  </div>
+  <a href="#contacto" class="nav-cta">cotizar →</a>
+</nav>
+
+<section class="hero">
+  <div class="coord-tracker">
+    <span id="lat">LAT --.----</span>
+    <span id="lng">LNG --.----</span>
+    <span style="color:var(--muted)">// operando sin ubicación fija</span>
+  </div>
+  <div class="hero-grid">
+    <div>
+      <div class="eyebrow">desarrollo & automatización</div>
+      <h1>Código que <span class="accent">trabaja</span><br>mientras vos no.</h1>
+      <p class="lead">Bots, webs y apps a medida, más automatización de procesos repetitivos. Sin caras, sin vueltas: solo soluciones que funcionan.</p>
+      <div class="hero-ctas">
+        <a href="#contacto" class="btn-primary">Cotizar proyecto</a>
+        <a href="#servicios" class="btn-ghost">Ver servicios</a>
+      </div>
+    </div>
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="term-dot"></div><div class="term-dot"></div><div class="term-dot"></div>
+        <div class="term-title">nomadcode — zsh</div>
+      </div>
+      <div class="term-body" id="termBody"></div>
+    </div>
+  </div>
+</section>
+
+<section id="servicios">
+  <div class="section-head">
+    <div class="eyebrow">servicios</div>
+    <h2>Cuatro comandos, un solo lugar</h2>
+    <p>Cada proyecto arranca con un objetivo claro. Elegí el que necesitás o combinalos.</p>
+  </div>
+  <div class="services-grid">
+    <div class="service-card">
+      <div class="service-cmd">$ deploy --target=bot</div>
+      <h3>Bots a medida</h3>
+      <p>Telegram, WhatsApp, Discord. Automatizá atención, ventas o notificaciones sin depender de nadie.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-cmd">$ build --target=web</div>
+      <h3>Desarrollo web</h3>
+      <p>Landing pages, tiendas online y sistemas a medida, rápidos y pensados para convertir.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-cmd">$ build --target=app</div>
+      <h3>Apps a medida</h3>
+      <p>Aplicaciones móviles o de escritorio adaptadas a tu idea, de punta a punta.</p>
+    </div>
+    <div class="service-card">
+      <div class="service-cmd">$ run --mode=auto</div>
+      <h3>Automatización</h3>
+      <p>Procesos repetitivos resueltos con scripts y flujos que corren solos, 24/7.</p>
+    </div>
+  </div>
+</section>
+
+<section id="proceso">
+  <div class="section-head">
+    <div class="eyebrow">cómo trabajamos</div>
+    <h2>Del mensaje al deploy</h2>
+    <p>Sin reuniones eternas ni presupuestos infinitos. Directo al grano.</p>
+  </div>
+  <div class="process-list">
+    <div class="process-item">
+      <div class="process-tag">msg</div>
+      <h4>Contás tu idea</h4>
+      <div class="process-desc">Me escribís por DM o mail con lo que necesitás, sin formularios ni vueltas.</div>
+    </div>
+    <div class="process-item">
+      <div class="process-tag">plan</div>
+      <h4>Definimos alcance</h4>
+      <div class="process-desc">Te paso una propuesta clara: qué se hace, en cuánto tiempo y a qué costo.</div>
+    </div>
+    <div class="process-item">
+      <div class="process-tag">code</div>
+      <h4>Desarrollo</h4>
+      <div class="process-desc">Trabajo con avances visibles, no silencio de radio hasta el final.</div>
+    </div>
+    <div class="process-item">
+      <div class="process-tag">live</div>
+      <h4>Entrega y soporte</h4>
+      <div class="process-desc">Tu proyecto queda funcionando, con soporte post-entrega si lo necesitás.</div>
+    </div>
+  </div>
+</section>
+
+<section id="contacto">
+  <div class="contact-box">
+    <div>
+      <h2>¿Arrancamos tu proyecto?</h2>
+      <p>Contame qué necesitás y en menos de 24hs te respondo con una propuesta concreta.</p>
+    </div>
+    <div class="contact-links">
+      <a href="mailto:nomadcode02@gmail.com"><span class="tag">mail</span> nomadcode02@gmail.com</a>
+      <a href="https://instagram.com/NomadC0de" target="_blank"><span class="tag">ig</span> @NomadC0de</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span class="caret">&gt;</span> nomad_code_ — 2026 — sin rostro, con código.
+</footer>
+
+<script>
+  // Coordinate tracker — cosmetic "nomad" effect
+  function randCoord(){
+    const lat = (Math.random()*180-90).toFixed(4);
+    const lng = (Math.random()*360-180).toFixed(4);
+    document.getElementById('lat').innerHTML = 'LAT <span>'+lat+'</span>';
+    document.getElementById('lng').innerHTML = 'LNG <span>'+lng+'</span>';
+  }
+  randCoord();
+  setInterval(randCoord, 4000);
+
+  // Typing terminal effect
+  const lines = [
+    {cmd: 'nomadcode ~ $ deploy bot.js --client=retail', out: '✓ bot desplegado — Telegram + WhatsApp activos'},
+    {cmd: 'nomadcode ~ $ build web.app --template=landing', out: '✓ sitio publicado — 100/100 performance'},
+    {cmd: 'nomadcode ~ $ run automation --task=facturacion', out: '✓ proceso automatizado — corre 24/7'},
+  ];
+  const body = document.getElementById('termBody');
+  let li = 0;
+
+  function typeLine(text, el, cb){
+    let i = 0;
+    function step(){
+      if(i <= text.length){
+        el.textContent = text.slice(0,i);
+        i++;
+        setTimeout(step, 22);
+      } else if(cb){ cb(); }
+    }
+    step();
+  }
+
+  function runSequence(){
+    if(li >= lines.length){
+      setTimeout(()=>{ body.innerHTML=''; li=0; runSequence(); }, 1800);
+      return;
+    }
+    const lineWrap = document.createElement('div');
+    lineWrap.className = 'term-line';
+    const promptSpan = document.createElement('span');
+    promptSpan.className = 'typed';
+    lineWrap.appendChild(promptSpan);
+    body.appendChild(lineWrap);
+
+    typeLine(lines[li].cmd, promptSpan, ()=>{
+      const cursor = document.createElement('span');
+      cursor.className = 'term-cursor';
+      lineWrap.appendChild(cursor);
+      setTimeout(()=>{
+        cursor.remove();
+        const out = document.createElement('div');
+        out.className = 'term-out';
+        out.textContent = lines[li].out;
+        body.appendChild(out);
+        li++;
+        setTimeout(runSequence, 500);
+      }, 500);
+    });
+  }
+  runSequence();
+</script>
+
+</body>
+</html>
